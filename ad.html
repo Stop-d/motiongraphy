@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><title>Zero Zero Spot</title>
+<style>
+html,body{margin:0;background:#000;color:#fff;font-family:'Segoe UI',sans-serif}
+#wrap{display:flex;flex-direction:column;align-items:center;gap:12px;padding:16px}
+canvas{width:min(100%,1280px);aspect-ratio:16/9;background:#000;box-shadow:0 0 40px #e4002b44}
+button{font:600 16px 'Segoe UI';padding:10px 22px;border:0;border-radius:999px;background:#e4002b;color:#fff;cursor:pointer}
+#st{opacity:.7;font-size:14px}
+</style></head><body>
+<div id="wrap"><canvas id="c" width="1920" height="1080"></canvas>
+<div><button id="play">▶ 재생</button> <button id="rec">⬇ 녹화 & 다운로드 (WebM)</button></div><div id="st"></div></div>
+<script src="assets/data.js"></script>
+<script>
+const W=1920,H=1080,D=30,cv=document.getElementById('c'),g=cv.getContext('2d');
+const RED='#e4002b',ICE='#bfefff';
+const img=new Image();img.src=window.IMG;
+const ez={o:t=>1-Math.pow(1-t,3),io:t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2,back:t=>{const c=1.9;return 1+(c+1)*Math.pow(t-1,3)+c*Math.pow(t-1,2)},el:t=>t<=0?0:t>=1?1:Math.pow(2,-10*t)*Math.sin((t*10-.75)*2.094)+1};
+const cl=(x,a=0,b=1)=>Math.max(a,Math.min(b,x)), seg=(t,a,b)=>cl((t-a)/(b-a));
+// deterministic bubbles
+let sd=7;const rnd=()=>(sd=(sd*16807)%2147483647)/2147483647;
+const bub=[...Array(260)].map(()=>({x:rnd()*W,s:rnd()*1+.2,r:2+rnd()*14,p:rnd()*20,w:rnd()*6}));
+function bubbles(t,amt,col){g.save();for(const b of bub){if(rnd&&b.p>amt*20)continue;const y=H+40-((t*260*b.s+b.p*120)%(H+120));const x=b.x+Math.sin(t*2+b.w)*18;g.globalAlpha=.25+.5*b.s;g.strokeStyle=col;g.lineWidth=2;g.beginPath();g.arc(x,y,b.r,0,7);g.stroke();g.globalAlpha*=.6;g.fillStyle='#fff';g.beginPath();g.arc(x-b.r*.35,y-b.r*.35,b.r*.25,0,7);g.fill()}g.restore()}
+function txt(s,x,y,size,o={}){g.save();g.translate(x,y);g.rotate(o.rot||0);g.scale(o.sx||1,o.sy||1);g.globalAlpha=o.a??1;g.font=`${o.w||900} ${size}px ${o.f||"'Arial Black','Malgun Gothic',sans-serif"}`;g.textAlign=o.al||'center';g.textBaseline='middle';if(o.ls)g.letterSpacing=o.ls+'px';if(o.glow){g.shadowColor=o.glow;g.shadowBlur=40}if(o.stroke){g.lineWidth=o.stroke;g.strokeStyle=o.col||'#fff';g.strokeText(s,0,0)}else{g.fillStyle=o.col||'#fff';g.fillText(s,0,0)}g.restore()}
+function wipe(t,col){g.fillStyle=col;g.fillRect(0,0,W,H)}
+function zeroRing(cx,cy,r,p,col,lw=38){g.save();g.strokeStyle=col;g.lineWidth=lw;g.lineCap='round';g.beginPath();g.ellipse(cx,cy,r*.72,r,0,-Math.PI/2,-Math.PI/2+Math.PI*2*p);g.stroke();g.restore()}
+function shake(t,a,amt){const k=Math.max(0,1-(t-a)*5);return k>0&&t>=a?[Math.sin(t*90)*amt*k,Math.cos(t*77)*amt*k]:[0,0]}
+const VO=[[18.0,20.6,'칼로리도 제로.'],[20.6,23.1,'카페인도 제로.'],[23.1,25.6,'짜릿함은 그대로.'],[25.6,28.2,'코카-콜라 제로 제로 카페인']];
+function frame(t){
+  g.setTransform(1,0,0,1,0,0);g.letterSpacing='0px';
+  // ── 0–3s: dark, fizz rising, can-open "PSSST"
+  if(t<3){wipe(t,'#000');bubbles(t,seg(t,0,2.5),ICE);
+    const p=seg(t,.6,1.4);if(p>0){const k=ez.el(p);txt('PSSST!',W/2,H/2,260*k,{col:'#fff',glow:ICE,rot:-.06})}
+    const q=seg(t,2.2,3);g.fillStyle=RED;g.beginPath();g.arc(W/2,H/2,ez.io(q)*1400,0,7);g.fill();}
+  // ── 3–8s: ZERO slam + counters
+  else if(t<8){const lt=t-3;wipe(t,RED);const [sx,sy]=shake(lt,.0,30);g.translate(sx,sy);
+    bubbles(t,.5,'#ffffff');
+    const words=['ZERO','ZERO','ZERO'];for(let i=0;i<3;i++){const p=ez.back(seg(lt,i*.35,i*.35+.4));if(p>0)txt(words[i],W/2+(p-1)*-2200*(i%2?-1:1),260+i*280,300,{col:i==1?'#000':'#fff',ls:-6,stroke:i==2?8:0})}
+    const p2=seg(lt,1.8,2.3);if(p2>0){g.fillStyle='#000';g.fillRect(0,0,W*ez.io(p2),H)}
+    if(lt>2.1){const s=seg(lt,2.2,2.6),s2=seg(lt,2.9,3.3);
+      txt('SUGAR',W*.3,H*.42,150,{a:s,col:'#fff'});zeroRing(W*.3,H*.68,110,ez.o(s),RED,30);
+      txt('CALORIE',W*.7,H*.42,150,{a:s2,col:'#fff'});zeroRing(W*.7,H*.68,110,ez.o(s2),RED,30);
+      const c=Math.round(500*(1-ez.o(seg(lt,3.6,4.6))));if(lt>3.6)txt(c+' kcal',W/2,H*.9,70,{col:ICE,w:700,f:'Bahnschrift'})}}
+  // ── 8–13s: CAFFEINE struck → 0
+  else if(t<13){const lt=t-8;wipe(t,'#000');bubbles(t,.8,ICE);
+    const p=ez.o(seg(lt,0,.6));txt('CAFFEINE',W/2,H/2,250,{a:p,sx:1+(1-p)*.5,col:'#fff',ls:4});
+    const s=ez.io(seg(lt,1.2,1.7));if(s>0){g.save();g.strokeStyle=RED;g.lineWidth=46;g.lineCap='round';g.beginPath();g.moveTo(W*.12,H*.62);g.lineTo(W*.12+W*.76*s,H*.38);g.stroke();g.restore()}
+    const z=seg(lt,2.3,3.2);if(z>0){g.fillStyle=`rgba(0,0,0,${ez.o(z)*.85})`;g.fillRect(0,0,W,H);const k=ez.el(z);txt('0',W/2,H/2,700*k,{col:RED,glow:RED,f:'Bahnschrift',w:700});txt('mg',W/2+260,H/2+200,90*k,{col:'#fff',w:700,f:'Bahnschrift'})}
+    const n=seg(lt,3.8,4.4);if(n>0)txt('밤에도, 언제든.',W/2,H*.88,72,{a:n,col:ICE,w:700,f:"'Malgun Gothic'"})}
+  // ── 13–18s: product reveal
+  else if(t<18){const lt=t-13;const gr=g.createRadialGradient(W/2,H/2,50,W/2,H/2,1100);gr.addColorStop(0,'#3a0010');gr.addColorStop(1,'#000');g.fillStyle=gr;g.fillRect(0,0,W,H);
+    for(let i=0;i<14;i++){g.save();g.translate(W/2,H/2);g.rotate(i/14*6.283+lt*.15);g.fillStyle=`rgba(228,0,43,${.06+.04*Math.sin(lt*3+i)})`;g.beginPath();g.moveTo(0,0);g.lineTo(1400,-90);g.lineTo(1400,90);g.fill();g.restore()}
+    bubbles(t,1,ICE);
+    const p=ez.back(seg(lt,.2,1.2));if(img.complete&&p>0){const ih=760*p,iw=ih*img.width/img.height;g.save();g.globalAlpha=cl(p);g.shadowColor=RED;g.shadowBlur=80;g.beginPath();g.roundRect(W/2-iw/2,H/2-ih/2+(1-p)*200,iw,ih,40);g.clip();g.drawImage(img,W/2-iw/2,H/2-ih/2+(1-p)*200,iw,ih);g.restore()}
+    const fl=seg(lt,.15,.5);if(fl>0&&fl<1){g.fillStyle=`rgba(255,255,255,${1-fl})`;g.fillRect(0,0,W,H)}
+    const z=ez.o(seg(lt,1.8,2.4));txt('ZERO',W*.08,H*.5,140,{a:z,al:'left',col:'#fff',rot:-Math.PI/2*(1-z)});txt('ZERO',W*.92,H*.5,140,{a:z,al:'right',stroke:6,col:'#fff'});}
+  // ── 18–30s: VO-synced kinetic tagline + end card
+  else {const lt=t-18;
+    if(t<28.2){wipe(t,t<23.1?'#000':RED);bubbles(t,1,t<23.1?ICE:'#fff');
+      for(const [a,b,s] of VO){if(t<a||t>=b)continue;const L=[...s],p=t-a;
+        g.save();g.font=`900 ${s.length>12?120:170}px 'Malgun Gothic'`;const fs=s.length>12?120:170;let tw=0;const ws=L.map(c=>{const w=g.measureText(c).width;tw+=w;return w});g.restore();
+        let x=W/2-tw/2;L.forEach((c,i)=>{const k=ez.back(seg(p,i*.05,i*.05+.35));const out=seg(p,b-a-.3,b-a);txt(c,x+ws[i]/2,H/2+(1-k)*140-out*120,fs,{a:cl(k)*(1-out),w:900,f:"'Malgun Gothic'",col:(c==='제'||c==='로')&&t<23.1?RED:'#fff',sy:k});x+=ws[i]});
+        const bar=ez.io(seg(p,.2,.8));g.fillStyle=t<23.1?RED:'#000';g.fillRect(W/2-tw/2,H/2+fs*.7,tw*bar,12);}
+    }else{const p=seg(t,28.2,28.8);wipe(t,'#000');bubbles(t,1,ICE);
+      if(img.complete){const ih=420,iw=ih*img.width/img.height;g.save();g.globalAlpha=ez.o(p)*.95;g.beginPath();g.roundRect(W/2-iw/2,110,iw,ih,28);g.clip();g.drawImage(img,W/2-iw/2,110,iw,ih);g.restore()}
+      const k=ez.el(seg(t,28.3,29.2));txt('Real Magic',W/2,H*.68,150*k,{col:RED,glow:RED,f:"'Segoe Script','Segoe UI'",w:700});
+      txt('ZERO SUGAR · ZERO CAFFEINE',W/2,H*.82,52,{a:seg(t,28.8,29.3),col:'#fff',w:700,f:'Bahnschrift',ls:10});
+      const fo=seg(t,29.6,30);if(fo>0){g.fillStyle=`rgba(0,0,0,${fo})`;g.fillRect(0,0,W,H)}}}
+}
+// ── audio: synthesized 124bpm BGM + SFX + VO, rendered offline
+const b64=s=>{const b=atob(s.split(',')[1]),u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return u.buffer};
+async function buildAudio(){const SR=44100,oc=new OfflineAudioContext(2,SR*D,SR);const m=oc.createGain();m.gain.value=.8;m.connect(oc.destination);
+  const comp=oc.createDynamicsCompressor();comp.connect(m);const bgm=oc.createGain();bgm.connect(comp);
+  const nb=oc.createBuffer(1,SR,SR),nd=nb.getChannelData(0);for(let i=0;i<SR;i++)nd[i]=Math.random()*2-1;
+  const noise=(t,dur,f,vol,type='highpass')=>{const s=oc.createBufferSource();s.buffer=nb;const fl=oc.createBiquadFilter();fl.type=type;fl.frequency.value=f;const gg=oc.createGain();gg.gain.setValueAtTime(vol,t);gg.gain.exponentialRampToValueAtTime(.001,t+dur);s.connect(fl).connect(gg).connect(bgm);s.start(t);s.stop(t+dur)};
+  const tone=(t,f,dur,vol,type='sawtooth',cut=2400)=>{const o=oc.createOscillator();o.type=type;o.frequency.value=f;const fl=oc.createBiquadFilter();fl.frequency.setValueAtTime(cut,t);fl.frequency.exponentialRampToValueAtTime(300,t+dur);const gg=oc.createGain();gg.gain.setValueAtTime(vol,t);gg.gain.exponentialRampToValueAtTime(.001,t+dur);o.connect(fl).connect(gg).connect(bgm);o.start(t);o.stop(t+dur)};
+  const kick=t=>{const o=oc.createOscillator(),gg=oc.createGain();o.frequency.setValueAtTime(150,t);o.frequency.exponentialRampToValueAtTime(40,t+.15);gg.gain.setValueAtTime(1,t);gg.gain.exponentialRampToValueAtTime(.001,t+.4);o.connect(gg).connect(bgm);o.start(t);o.stop(t+.4)};
+  // SFX: can open + fizz
+  noise(.6,.25,3000,.9,'bandpass');noise(.7,2.3,5000,.25);
+  const beat=60/124,start=3;const prog=[[57,60,64],[53,57,60],[48,52,55],[55,59,62]];const hz=n=>440*Math.pow(2,(n-69)/12);
+  for(let t=start,i=0;t<29.5;t+=beat/2,i++){const bar=Math.floor(i/8)%4,ch=prog[bar];const duck=t>18?.55:1;
+    if(i%2==0)kick(t);if(i%2==1)noise(t,.06,8000,.18*duck);if(i%4==2)noise(t,.18,1800,.35*duck,'bandpass');
+    tone(t,hz(ch[0]-24),beat*.45,.22*duck,'square',900);
+    tone(t,hz(ch[(i*2)%3]+12+(i%3==0?12:0)),beat*.4,.07*duck,'triangle',5000);
+    if(i%8==0)ch.forEach(n=>tone(t,hz(n),beat*3.8,.05*duck,'sawtooth',3000));}
+  // risers / hits on scene cuts
+  [3,8,13,18,28.2].forEach(t=>{noise(t-.6,.6,600,.25);kick(t);noise(t,.5,200,.4,'lowpass')});
+  const vo=await oc.decodeAudioData(b64(window.VO));const vs=oc.createBufferSource();vs.buffer=vo;const vg=oc.createGain();vg.gain.value=1.6;vs.connect(vg).connect(m);vs.start(18);
+  return oc.startRendering()}
+let AB=null,ac=null;const st=document.getElementById('st');
+async function run(record){if(!AB){st.textContent='오디오 렌더링 중…';AB=await buildAudio()}
+  ac=ac||new AudioContext();await ac.resume();const src=ac.createBufferSource();src.buffer=AB;src.connect(ac.destination);let rec,chunks=[];
+  if(record){const dst=ac.createMediaStreamDestination();src.connect(dst);const s=new MediaStream([...cv.captureStream(60).getVideoTracks(),...dst.stream.getAudioTracks()]);
+    rec=new MediaRecorder(s,{mimeType:'video/webm;codecs=vp9,opus',videoBitsPerSecond:16e6});rec.ondataavailable=e=>chunks.push(e.data);rec.onstop=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(chunks,{type:'video/webm'}));a.download='zero-zero-caffeine_30s.webm';a.click();st.textContent='다운로드 완료'};rec.start()}
+  const t0=ac.currentTime+.05;src.start(t0);st.textContent=record?'녹화 중… (30초)':'재생 중';
+  (function loop(){const t=ac.currentTime-t0;frame(cl(t,0,D));if(t<D)requestAnimationFrame(loop);else{rec?rec.stop():st.textContent='끝'}})()}
+document.getElementById('play').onclick=()=>run(false);document.getElementById('rec').onclick=()=>run(true);
+img.onload=()=>frame(15);window.__frame=frame;
+</script></body></html>
