@@ -1,11 +1,11 @@
-# Zero Sugar Zero Caffeine — 30s Motion Graphic (Spec Ad)
+﻿# Zero Sugar Zero Caffeine ??30s Motion Graphic (Spec Ad)
 
-30초 16:9 키네틱 타이포그래피 모션그래픽 시안 (비공식 / 포트폴리오용).
+30珥?16:9 ?ㅻ꽕????댄룷洹몃옒??紐⑥뀡洹몃옒???쒖븞 (鍮꾧났??/ ?ы듃?대━?ㅼ슜).
 
-- `zero-zero-caffeine_30s.webm` — 렌더링된 최종 영상 (1920×1080, BGM + 보이스오버)
-- `ZeroZeroCaffeine_30s.html` — 단일 파일 버전 (브라우저에서 열어 재생 / 녹화)
-- `ad.html` + `assets/` — 소스 버전 (이미지·음성 분리)
+- `zero-zero-caffeine_30s.webm` ???뚮뜑留곷맂 理쒖쥌 ?곸긽 (1920횞1080, BGM + 蹂댁씠?ㅼ삤踰?
+- `index.html` ???⑥씪 ?뚯씪 踰꾩쟾 (釉뚮씪?곗??먯꽌 ?댁뼱 ?ъ깮 / ?뱁솕)
+- `ad.html` + `assets/` ???뚯뒪 踰꾩쟾 (?대?吏쨌?뚯꽦 遺꾨━)
 
-BGM은 Web Audio로 직접 합성, 음성은 Windows TTS로 생성했습니다.
+BGM? Web Audio濡?吏곸젒 ?⑹꽦, ?뚯꽦? Windows TTS濡??앹꽦?덉뒿?덈떎.
 
-> 본 작업은 코카-콜라와 무관한 비공식 시안입니다. 제품 이미지와 로고, 슬로건 "Real Magic"의 권리는 The Coca-Cola Company에 있습니다.
+> 蹂??묒뾽? 肄붿뭅-肄쒕씪? 臾닿???鍮꾧났???쒖븞?낅땲?? ?쒗뭹 ?대?吏? 濡쒓퀬, ?щ줈嫄?"Real Magic"??沅뚮━??The Coca-Cola Company???덉뒿?덈떎.
